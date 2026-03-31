@@ -15,7 +15,7 @@ import {
   DEFAULT_ALERT_THRESHOLDS_PCT,
   createInitialAppState,
 } from '../models/core';
-import { getMonthString } from '../components/utils';
+import { getMonthString } from '../utils/date';
 
 const STORAGE_KEY = 'bp_app_state_v1';
 
@@ -441,9 +441,10 @@ export function addBudget(state, budget) {
     monthKey: budget.monthKey,
     categoryId: budget.categoryId,
     limitCents: Math.max(0, Math.trunc(budget.limitCents)),
-    alertThresholdsPct: Array.isArray(budget.alertThresholdsPct) && budget.alertThresholdsPct.length > 0
-      ? budget.alertThresholdsPct
-      : DEFAULT_ALERT_THRESHOLDS_PCT,
+    alertThresholdsPct:
+      Array.isArray(budget.alertThresholdsPct) && budget.alertThresholdsPct.length > 0
+        ? budget.alertThresholdsPct
+        : DEFAULT_ALERT_THRESHOLDS_PCT,
     alertsEnabled: budget.alertsEnabled !== false,
     createdAtMs: budget.createdAtMs || nowMs,
     updatedAtMs: nowMs,

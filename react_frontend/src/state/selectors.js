@@ -3,7 +3,8 @@
  * Pure derived-data helpers ("selectors") for AppState.
  */
 
-import { computeTotals, getMonthString } from '../components/utils';
+import { computeTotals } from '../features/transactions/utils/transactions';
+import { getMonthString } from '../utils/date';
 
 /**
  * PUBLIC_INTERFACE
