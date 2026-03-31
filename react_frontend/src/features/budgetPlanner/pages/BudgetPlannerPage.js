@@ -25,6 +25,10 @@ import { CategoryBreakdownChart } from '../../categories/components/CategoryBrea
 import { computeCategoryBreakdown } from '../../categories/utils/categoryBreakdown';
 import { generateRecurringOccurrencesForPeriod } from '../../transactions/utils/recurring';
 
+import { BudgetsPanel } from '../../budgets/components/BudgetsPanel';
+import { computeBudgetAlerts } from '../../budgets/utils/budgetAlerts';
+import { formatCurrencyFromCents } from '../../../utils/money';
+
 /**
  * @file BudgetPlannerPage.js
  * Main page with transaction CRUD.
@@ -33,16 +37,16 @@ import { generateRecurringOccurrencesForPeriod } from '../../transactions/utils/
  * - Allow marking transactions as recurring in the form.
  * - For selected period, generate preview occurrences (not persisted).
  * - Offer a confirm action to permanently add generated occurrences.
+ *
+ * Step 08.01:
+ * - Budgets + alerts (overall and per-category) persisted in localStorage.
+ * - Budget consumption is computed from the selected period's filtered expenses.
  */
 
 /**
  * Main budget planner screen/page.
  *
  * NOTE: This keeps the current behavior intact (legacy transaction shape and storage key).
- *
- * Step 06.01 additions:
- * - Category management (fixed + user-defined stored in localStorage)
- * - Category breakdown chart for selected period (expenses)
  *
  * PUBLIC_INTERFACE
  * @returns {JSX.Element}
@@ -86,13 +90,14 @@ export function BudgetPlannerPage() {
 
     // Combine for the list view (persisted + preview). (Preview should not affect persistence.)
     const combinedPeriodTxs = useMemo(() => {
-        // Avoid accidental duplicates if a generated occurrence matches an existing persisted tx.
-        // The generator already tries to avoid duplicates; this is defensive.
         const seen = new Set();
         const out = [];
 
         const push = (tx) => {
-            const key = tx && tx.id ? String(tx.id) : `${tx?.date || ''}|${tx?.type || ''}|${tx?.amount || ''}|${tx?.category || ''}|${tx?.note || ''}`;
+            const key =
+                tx && tx.id
+                    ? String(tx.id)
+                    : `${tx?.date || ''}|${tx?.type || ''}|${tx?.amount || ''}|${tx?.category || ''}|${tx?.note || ''}`;
             if (seen.has(key)) return;
             seen.add(key);
             out.push(tx);
@@ -110,10 +115,7 @@ export function BudgetPlannerPage() {
         [combinedPeriodTxs]
     );
 
-    const filteredTxs = useMemo(
-        () => applyTransactionMultiFilters(combinedPeriodTxs, txFilters),
-        [combinedPeriodTxs, txFilters]
-    );
+    const filteredTxs = useMemo(() => applyTransactionMultiFilters(combinedPeriodTxs, txFilters), [combinedPeriodTxs, txFilters]);
 
     const totals = useMemo(() => computeTotals(filteredTxs), [filteredTxs]);
 
@@ -132,6 +134,10 @@ export function BudgetPlannerPage() {
     // Category breakdown for selected period (expenses only).
     // Note: Use persisted transactions only for charts to avoid confusing "preview" spending in analytics.
     const expenseBreakdownRows = useMemo(() => computeCategoryBreakdown(periodTxs, { type: 'expense' }), [periodTxs]);
+
+    // Step 08.01: Budget alerts computed from *filtered* transactions for the selected period.
+    const budgetAlertState = useMemo(() => computeBudgetAlerts(filteredTxs), [filteredTxs]);
+    const activeAlerts = budgetAlertState.alerts || [];
 
     /**
      * Open add modal.
@@ -179,7 +185,7 @@ export function BudgetPlannerPage() {
 
     /**
      * Confirm-to-save for preview occurrences in the selected period.
-     * Adds the generated occurrences to persistence as real transactions, tagged with `sourceRecurringId`.
+     * Adds the generated occurrences to persistence as real transactions.
      */
     function handleConfirmAddGeneratedForPeriod() {
         const count = generatedPeriodTxs.length;
@@ -192,11 +198,6 @@ export function BudgetPlannerPage() {
         if (!ok) return;
 
         generatedPeriodTxs.forEach((tx) => {
-            // Create a persisted transaction:
-            // - generate fresh id
-            // - keep sourceRecurringId for de-duping on future previews
-            // - remove generated marker
-            // - keep date/type/amount/category/note
             addTransaction({
                 ...tx,
                 id: undefined,
@@ -225,6 +226,56 @@ export function BudgetPlannerPage() {
             <MonthBar period={normalizedPeriod} onPeriodChange={setPeriod} totals={totals} />
 
             <main>
+                {/* Step 08.01: Budget alerts */}
+                {activeAlerts.length > 0 ? (
+                    <section className="budget-alerts" aria-label="Budget alerts">
+                        <h2 className="budget-alerts__title">Budget alerts</h2>
+                        <ul className="budget-alerts__list">
+                            {activeAlerts.map((a) => {
+                                const pct = Number.isFinite(a.pctUsed) ? a.pctUsed : 0;
+                                const pctText = `${Math.round(pct)}%`;
+                                const spent = formatCurrencyFromCents(a.spentCents);
+                                const limit = formatCurrencyFromCents(a.limitCents);
+                                const label =
+                                    a.scope === 'overall'
+                                        ? 'Overall'
+                                        : a.category
+                                          ? `Category: ${a.category}`
+                                          : 'Category';
+
+                                return (
+                                    <li
+                                        key={a.id}
+                                        className={`budget-alert budget-alert--${a.level}`}
+                                        aria-label={`${a.message}. ${label}. Spent $${spent} of $${limit} (${pctText}).`}
+                                    >
+                                        <div className="budget-alert__left">
+                                            <strong className="budget-alert__label">{label}</strong>
+                                            <div className="budget-alert__message">{a.message}</div>
+                                        </div>
+                                        <div className="budget-alert__right">
+                                            <div className="budget-alert__numbers">
+                                                <span>
+                                                    ${spent} / ${limit}
+                                                </span>
+                                                <strong className="budget-alert__pct">{pctText}</strong>
+                                            </div>
+                                            <div className="budget-alert__barTrack" aria-hidden="true">
+                                                <div
+                                                    className="budget-alert__barFill"
+                                                    style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </section>
+                ) : null}
+
+                <BudgetsPanel categories={allCategoriesForForm} />
+
                 <CategoryBreakdownChart
                     title={`Spending by category (${selectedPeriodLabel})`}
                     rows={expenseBreakdownRows}
