@@ -3,6 +3,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { TopBar } from '../../../components/layout/TopBar';
 import { MonthBar } from '../../../components/layout/MonthBar';
 import { FabButton } from '../../../components/ui/FabButton';
+import { CsvImportExportModal } from '../components/CsvImportExportModal';
 
 import TransactionForm from '../../transactions/components/TransactionForm';
 import TransactionList from '../../transactions/components/TransactionList';
@@ -57,10 +58,11 @@ export function BudgetPlannerPage() {
     const [showForm, setShowForm] = useState(false);
     const [editingTx, setEditingTx] = useState(null);
     const [txFilters, setTxFilters] = useState(() => createDefaultTransactionMultiFilters());
+    const [showCsvModal, setShowCsvModal] = useState(false);
 
     const openButtonRef = useRef(null);
 
-    const { transactions, addTransaction, updateTransaction, deleteTransaction } = useTransactions();
+    const { transactions, addTransaction, updateTransaction, deleteTransaction, setTransactions } = useTransactions();
 
     const [period, setPeriod] = useState(() => ({
         mode: 'month',
@@ -213,13 +215,24 @@ export function BudgetPlannerPage() {
             <TopBar
                 title="Budget Planner"
                 right={
-                    <button
-                        className="theme-toggle"
-                        onClick={toggleTheme}
-                        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-                    >
-                        {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-                    </button>
+                    <div className="topbar-actions">
+                        <button
+                            type="button"
+                            className="topbar-actions__btn"
+                            onClick={() => setShowCsvModal(true)}
+                            aria-label="Open CSV import/export"
+                        >
+                            CSV
+                        </button>
+                        <button
+                            type="button"
+                            className="theme-toggle"
+                            onClick={toggleTheme}
+                            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                        >
+                            {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+                        </button>
+                    </div>
                 }
             />
 
@@ -341,6 +354,30 @@ export function BudgetPlannerPage() {
                 onSave={handleSave}
                 categories={allCategoriesForForm}
                 initialTransaction={editingTx}
+            />
+
+            <CsvImportExportModal
+                open={showCsvModal}
+                onClose={() => setShowCsvModal(false)}
+                currentTransactions={transactions}
+                onApplied={() => {
+                    // Re-load from localStorage indirectly by resetting state to current persisted value.
+                    // We avoid re-reading localStorage here and instead leverage the fact that useTransactions
+                    // persists to localStorage and BudgetPlannerPage will re-compute derived state.
+                    // However, after import we *do* need to reflect imported data immediately; simplest:
+                    // trigger a reload by setting transactions to the just-imported persisted value.
+                    //
+                    // Note: This keeps everything localStorage-only.
+                    try {
+                        const raw = window.localStorage.getItem('bp_transactions');
+                        const parsed = raw ? JSON.parse(raw) : [];
+                        setTransactions(Array.isArray(parsed) ? parsed : []);
+                    } catch {
+                        // ignore
+                    }
+                    // Also refresh categories list (user categories may have been imported in bundle).
+                    setCategoryRefreshTick((t) => t + 1);
+                }}
             />
         </div>
     );

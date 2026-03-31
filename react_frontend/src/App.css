@@ -123,6 +123,210 @@
   border-bottom: 4px double #00ffe1;
 }
 
+/* --- CSV Import/Export (Step 09.01) --- */
+.topbar-actions {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.topbar-actions__btn {
+  font-size: 0.95rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 2px solid #00ffe1;
+  background: rgba(0, 255, 225, 0.12);
+  color: #d8fffb;
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.topbar-actions__btn:hover {
+  background: rgba(0, 255, 225, 0.18);
+}
+
+.csvio__tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.csvio__tab {
+  font-size: 0.95rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.csvio__tab--active {
+  border-color: #00ffe1;
+  color: #d8fffb;
+}
+
+.csvio__section {
+  margin: 12px 0 16px 0;
+  text-align: left;
+}
+
+.csvio__h {
+  margin: 0 0 6px 0;
+  font-size: 1.05rem;
+}
+
+.csvio__p {
+  margin: 0 0 10px 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.95rem;
+}
+
+.csvio__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+  justify-content: space-between;
+}
+
+.csvio__label {
+  font-weight: 800;
+}
+
+.csvio__select {
+  font-size: 1rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 2px solid #928ac2;
+  background: #fcfcff;
+  color: #1a1a1a;
+  min-width: 220px;
+}
+
+.csvio__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.csvio__actions--bottom {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.csvio__btn {
+  font-size: 0.95rem;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 2px solid #00ffe1;
+  background: rgba(0, 255, 225, 0.12);
+  color: #d8fffb;
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.csvio__btn:hover {
+  background: rgba(0, 255, 225, 0.18);
+}
+
+.csvio__btn--secondary {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.csvio__btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.csvio__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.csvio__textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 2px solid #928ac2;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.csvio__notice {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 255, 225, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.csvio__notice--error {
+  border-color: rgba(255, 78, 78, 0.55);
+  background: rgba(255, 78, 78, 0.10);
+  color: #ffdfdf;
+}
+
+.csvio__notice--warning {
+  border-color: rgba(255, 231, 107, 0.55);
+  background: rgba(255, 231, 107, 0.08);
+  color: #fff3b6;
+}
+
+.csvio__notice--success {
+  border-color: rgba(0, 255, 225, 0.55);
+  background: rgba(0, 255, 225, 0.10);
+  color: #d8fffb;
+}
+
+.csvio__list {
+  margin: 8px 0 0 0;
+  padding-left: 18px;
+}
+
+.csvio__preview {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 255, 225, 0.35);
+  background: rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.csvio__previewRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.csvio__muted {
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 520px) {
+  .csvio__actions--bottom {
+    justify-content: flex-start;
+  }
+  .csvio__select {
+    min-width: 100%;
+  }
+}
+
 .month-bar {
   background: var(--bg-secondary);
   padding: 18px 0 10px 0;
