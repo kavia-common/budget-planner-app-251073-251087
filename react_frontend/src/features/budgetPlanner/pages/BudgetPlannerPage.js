@@ -13,6 +13,12 @@ import { useTransactions } from '../../transactions/hooks/useTransactions';
 import { getMonthString } from '../../../utils/date';
 import { formatSelectedPeriodLabel, normalizeSelectedPeriod } from '../../../utils/period';
 import { computeTotals, filterTransactionsByPeriod } from '../../transactions/utils/transactions';
+import {
+    applyTransactionMultiFilters,
+    createDefaultTransactionMultiFilters,
+    getAvailableCategoriesFromTransactions,
+} from '../../transactions/utils/transactionFilters';
+import { TransactionFiltersBar } from '../../transactions/components/TransactionFiltersBar';
 
 /**
  * @file BudgetPlannerPage.js
@@ -32,6 +38,7 @@ export function BudgetPlannerPage() {
     const { theme, toggleTheme } = useTheme('light');
     const [showForm, setShowForm] = useState(false);
     const [editingTx, setEditingTx] = useState(null);
+    const [txFilters, setTxFilters] = useState(() => createDefaultTransactionMultiFilters());
 
     const openButtonRef = useRef(null);
 
@@ -57,7 +64,10 @@ export function BudgetPlannerPage() {
         () => filterTransactionsByPeriod(transactions, normalizedPeriod),
         [transactions, normalizedPeriod]
     );
-    const totals = useMemo(() => computeTotals(periodTxs), [periodTxs]);
+    const availableFilterCategories = useMemo(() => getAvailableCategoriesFromTransactions(periodTxs), [periodTxs]);
+
+    const filteredTxs = useMemo(() => applyTransactionMultiFilters(periodTxs, txFilters), [periodTxs, txFilters]);
+    const totals = useMemo(() => computeTotals(filteredTxs), [filteredTxs]);
 
     /**
      * Open add modal.
@@ -119,8 +129,13 @@ export function BudgetPlannerPage() {
             <MonthBar period={normalizedPeriod} onPeriodChange={setPeriod} totals={totals} />
 
             <main>
+                <TransactionFiltersBar
+                    filters={txFilters}
+                    onChange={setTxFilters}
+                    availableCategories={availableFilterCategories}
+                />
                 <TransactionList
-                    transactions={periodTxs}
+                    transactions={filteredTxs}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     emptyLabel={`No transactions for ${selectedPeriodLabel}.`}

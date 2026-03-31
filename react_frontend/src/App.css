@@ -407,3 +407,100 @@ main {
   border-color: #ffb5b5;
   color: #ffdfdf;
 }
+
+/* --- Transaction filters bar --- */
+.tx-filters {
+  margin: 8px 0 14px 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: #2f2a52;
+  border: 2px solid #928ac2;
+  color: #fff;
+  box-shadow: 0 2px 18px #00000020;
+}
+
+.tx-filters-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+
+.tx-filters-row:last-child {
+  margin-bottom: 0;
+}
+
+.tx-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.tx-filter-field-wide {
+  flex: 1 1 280px;
+  min-width: 240px;
+}
+
+.tx-filter-field label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.tx-filter-field input,
+.tx-filter-field select {
+  font-size: 1rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 2px solid #928ac2;
+  background: #fcfcff;
+  color: #1a1a1a;
+}
+
+.tx-filter-field select[multiple] {
+  min-height: 90px;
+}
+
+.tx-filter-hint {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+}
+
+.tx-filter-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.tx-filter-btn {
+  font-size: 0.95rem;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 2px solid #00ffe1;
+  background: rgba(0, 255, 225, 0.12);
+  color: #d8fffb;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.tx-filter-btn:hover {
+  background: rgba(0, 255, 225, 0.18);
+}
+
+.tx-filter-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 520px) {
+  .tx-filter-field {
+    min-width: 100%;
+  }
+  .tx-filter-actions {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+}
