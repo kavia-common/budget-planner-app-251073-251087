@@ -102,3 +102,216 @@
     font-size: 12px;
   }
 }
+
+/* --- Retro Budget Planner UI Additions --- */
+
+.top-bar {
+  width: 100%;
+  padding: 12px 24px;
+  background: #222235;
+  color: #61dafb;
+  font-family: 'Inter', 'Courier New', Courier, monospace;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 4px double #00ffe1;
+}
+
+.month-bar {
+  background: var(--bg-secondary);
+  padding: 18px 0 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border-bottom: 2px dashed #00ffe1;
+}
+
+.month-bar select {
+  font-size: 1.1rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  margin-left: 4px;
+  padding: 3px 8px;
+  background: inherit;
+}
+
+.summary-cards {
+  display: flex;
+  gap: 12px;
+  margin-left: 30px;
+}
+
+.summary {
+  background: #e4ffc8;
+  color: #1a2c13;
+  padding: 8px 15px;
+  border-radius: 11px;
+  border: 2px solid #c4d9a7;
+  min-width: 85px;
+  font-family: inherit;
+  text-align: center;
+}
+.summary.income {
+  background: #c6f7e2;
+}
+.summary.expense {
+  background: #ffe5e5;
+  color: #912c21;
+  border-color: #ffd5c0;
+}
+.summary.net {
+  background: #fff0c1;
+  color: #7c610c;
+  border-color: #ffe488;
+}
+
+main {
+  margin: 0 auto;
+  max-width: 620px;
+  width: 100%;
+  padding: 25px 12px 98px 12px;
+}
+
+.transactions-table {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--bg-secondary);
+  font-size: 1rem;
+  margin: 12px 0;
+  box-shadow: 0 1px 10px #0001;
+}
+.transactions-table th, .transactions-table td {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+}
+.transactions-table th {
+  background: #444062;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.tx-type-income {
+  color: #108600;
+  font-weight: bold;
+}
+.tx-type-expense {
+  color: #d21909;
+  font-weight: bold;
+}
+.empty-state {
+  padding: 18px;
+  color: #7d7d7d;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  right: 22px;
+  bottom: 35px;
+  background: linear-gradient(135deg, #eeec77, #ffb347 85%, #ffe76b);
+  border: 2px solid #988c39;
+  color: #463018;
+  border-radius: 50%;
+  width: 66px;
+  height: 66px;
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 18px #5f490020;
+  cursor: pointer;
+  z-index: 99;
+  font-family: inherit;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.fab:hover {
+  background: #fff77a;
+  box-shadow: 0 6px 24px #6c4d0040;
+  color: #222;
+}
+
+/* Modal styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(34, 34, 34, 0.7);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: #3f3768;
+  color: #fff;
+  padding: 35px 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px #4a326a60;
+  width: 94vw;
+  max-width: 390px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+.modal h2 {
+  font-family: inherit;
+  text-align: center;
+  margin-top: 0;
+}
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+.form-row label {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.form-row input,
+.form-row select {
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 5px;
+  border: 1px solid #928ac2;
+  background: #fcfcff;
+  margin-top: 2px;
+}
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 18px;
+  justify-content: center;
+}
+.form-actions button {
+  font-size: 1rem;
+  padding: 7px 18px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+}
+.form-actions button[type="submit"] {
+  background: #e3fba7;
+  color: #2c4307;
+  border: 2px solid #8aba47;
+}
+.form-actions button[type="button"] {
+  background: #ffb5b5;
+  color: #933434;
+  border: 2px solid #cd8181;
+}
+.form-error {
+  color: #ff4e4e;
+  font-size: 0.9rem;
+}
