@@ -315,3 +315,75 @@ main {
   color: #ff4e4e;
   font-size: 0.9rem;
 }
+
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Modal header/close button for accessibility */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-close {
+  background: transparent;
+  border: 2px solid #928ac2;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.modal-description {
+  margin: 10px 0 0 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.modal-body {
+  margin-top: 10px;
+}
+
+/* Transaction row actions */
+.tx-actions {
+  white-space: nowrap;
+}
+
+.tx-action-btn {
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid #928ac2;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.tx-action-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.tx-action-btn.danger {
+  border-color: #ffb5b5;
+  color: #ffdfdf;
+}
