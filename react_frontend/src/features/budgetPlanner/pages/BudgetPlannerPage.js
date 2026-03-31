@@ -1,9 +1,11 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { TopBar } from '../../../components/layout/TopBar';
 import { MonthBar } from '../../../components/layout/MonthBar';
 import { FabButton } from '../../../components/ui/FabButton';
 import { CsvImportExportModal } from '../components/CsvImportExportModal';
+import { HelpModal } from '../components/HelpModal';
+import { Toast } from '../../../components/ui/Toast';
 
 import TransactionForm from '../../transactions/components/TransactionForm';
 import TransactionList from '../../transactions/components/TransactionList';
@@ -62,10 +64,49 @@ export function BudgetPlannerPage() {
     const [editingTx, setEditingTx] = useState(null);
     const [txFilters, setTxFilters] = useState(() => createDefaultTransactionMultiFilters());
     const [showCsvModal, setShowCsvModal] = useState(false);
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     const openButtonRef = useRef(null);
 
     const { transactions, addTransaction, updateTransaction, deleteTransaction, setTransactions } = useTransactions();
+
+    // Step 11.01: onboarding/help + UX safeguards.
+    // Simple localStorage flag (independent from the legacy/new state store split).
+    const onboardingStorageKey = 'bp_help_seen_v1';
+    const [hasSeenHelp, setHasSeenHelp] = useState(() => {
+        try {
+            return window.localStorage.getItem(onboardingStorageKey) === '1';
+        } catch {
+            return false;
+        }
+    });
+
+    const [toastState, setToastState] = useState(() => ({
+        open: false,
+        message: '',
+        actionLabel: '',
+        // eslint-disable-next-line no-empty-function
+        onAction: () => {},
+    }));
+    const lastDeletedRef = useRef(null);
+
+    useEffect(() => {
+        if (hasSeenHelp) return;
+        // Small delay so the UI settles before showing onboarding.
+        const t = window.setTimeout(() => {
+            setShowHelpModal(true);
+        }, 350);
+        return () => window.clearTimeout(t);
+    }, [hasSeenHelp]);
+
+    function markHelpSeen() {
+        try {
+            window.localStorage.setItem(onboardingStorageKey, '1');
+        } catch {
+            // ignore
+        }
+        setHasSeenHelp(true);
+    }
 
     const [period, setPeriod] = useState(() => ({
         mode: 'month',
@@ -173,7 +214,27 @@ export function BudgetPlannerPage() {
         const label = `${tx.type} ${Number(tx.amount || 0).toFixed(2)} on ${tx.date}`;
         const ok = window.confirm(`Delete transaction: ${label}?`);
         if (!ok) return;
+        // Capture before deletion for optional undo.
+        lastDeletedRef.current = {
+            tx: { ...tx },
+            deletedAtMs: Date.now(),
+        };
+
         deleteTransaction(tx.id);
+
+        setToastState({
+            open: true,
+            message: 'Transaction deleted.',
+            actionLabel: 'Undo',
+            onAction: () => {
+                const payload = lastDeletedRef.current;
+                if (!payload || !payload.tx) return;
+                // Add back; allow storage hook to generate a new id to avoid collisions.
+                addTransaction({ ...payload.tx, id: undefined });
+                lastDeletedRef.current = null;
+                setToastState((prev) => ({ ...prev, open: false }));
+            },
+        });
     }
 
     /**
@@ -219,6 +280,15 @@ export function BudgetPlannerPage() {
                 title="Budget Planner"
                 right={
                     <div className="topbar-actions">
+                        <button
+                            type="button"
+                            className="topbar-actions__btn"
+                            onClick={() => setShowHelpModal(true)}
+                            aria-label="Open help"
+                            title="Help"
+                        >
+                            Help
+                        </button>
                         <button
                             type="button"
                             className="topbar-actions__btn"
@@ -389,6 +459,23 @@ export function BudgetPlannerPage() {
                     // Also refresh categories list (user categories may have been imported in bundle).
                     setCategoryRefreshTick((t) => t + 1);
                 }}
+            />
+
+            <HelpModal
+                open={showHelpModal}
+                onClose={() => {
+                    setShowHelpModal(false);
+                    if (!hasSeenHelp) markHelpSeen();
+                }}
+            />
+
+            <Toast
+                open={toastState.open}
+                message={toastState.message}
+                actionLabel={toastState.actionLabel}
+                onAction={toastState.onAction}
+                onClose={() => setToastState((prev) => ({ ...prev, open: false }))}
+                durationMs={6500}
             />
         </div>
     );

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { addUserCategory, getFixedCategories, loadUserCategories, removeUserCategory } from '../services/categoriesStorage';
+import { Toast } from '../../../components/ui/Toast';
 
 /**
  * @file CategoryManager.js
@@ -21,6 +22,13 @@ export function CategoryManager({ onCategoriesChanged }) {
   const [userCats, setUserCats] = useState(() => loadUserCategories());
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
+  const [toastState, setToastState] = useState(() => ({
+    open: false,
+    message: '',
+    actionLabel: '',
+    // eslint-disable-next-line no-empty-function
+    onAction: () => {},
+  }));
 
   function refresh() {
     setUserCats(loadUserCategories());
@@ -41,12 +49,29 @@ export function CategoryManager({ onCategoriesChanged }) {
 
   function handleRemove(name) {
     setError('');
+    const ok = window.confirm(`Remove category "${name}"?`);
+    if (!ok) return;
     const res = removeUserCategory(name);
     if (!res.ok) {
       setError(res.error || 'Unable to remove category.');
       return;
     }
     refresh();
+
+    setToastState({
+      open: true,
+      message: 'Category removed.',
+      actionLabel: 'Undo',
+      onAction: () => {
+        const undoRes = addUserCategory(name);
+        if (!undoRes.ok) {
+          setError(undoRes.error || 'Unable to undo category removal.');
+          return;
+        }
+        refresh();
+        setToastState((prev) => ({ ...prev, open: false }));
+      },
+    });
   }
 
   return (
@@ -115,6 +140,15 @@ export function CategoryManager({ onCategoriesChanged }) {
           )}
         </div>
       </div>
+
+      <Toast
+        open={toastState.open}
+        message={toastState.message}
+        actionLabel={toastState.actionLabel}
+        onAction={toastState.onAction}
+        onClose={() => setToastState((prev) => ({ ...prev, open: false }))}
+        durationMs={6000}
+      />
     </section>
   );
 }
