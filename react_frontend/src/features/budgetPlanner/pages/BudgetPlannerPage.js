@@ -19,6 +19,10 @@ import {
     getAvailableCategoriesFromTransactions,
 } from '../../transactions/utils/transactionFilters';
 import { TransactionFiltersBar } from '../../transactions/components/TransactionFiltersBar';
+import { getAllCategories } from '../../categories/services/categoriesStorage';
+import { CategoryManager } from '../../categories/components/CategoryManager';
+import { CategoryBreakdownChart } from '../../categories/components/CategoryBreakdownChart';
+import { computeCategoryBreakdown } from '../../categories/utils/categoryBreakdown';
 
 /**
  * @file BudgetPlannerPage.js
@@ -29,6 +33,10 @@ import { TransactionFiltersBar } from '../../transactions/components/Transaction
  * Main budget planner screen/page.
  *
  * NOTE: This keeps the current behavior intact (legacy transaction shape and storage key).
+ *
+ * Step 06.01 additions:
+ * - Category management (fixed + user-defined stored in localStorage)
+ * - Category breakdown chart for selected period (expenses)
  *
  * PUBLIC_INTERFACE
  * @returns {JSX.Element}
@@ -44,12 +52,6 @@ export function BudgetPlannerPage() {
 
     const { transactions, addTransaction, updateTransaction, deleteTransaction } = useTransactions();
 
-    // Keep categories as simple strings (legacy behavior).
-    const DEFAULT_CATEGORIES = useMemo(
-        () => ['Groceries', 'Rent', 'Utilities', 'Transportation', 'Dining', 'Salary', 'Miscellaneous'],
-        []
-    );
-
     const [period, setPeriod] = useState(() => ({
         mode: 'month',
         monthKey: getMonthString(new Date().toISOString()),
@@ -64,10 +66,27 @@ export function BudgetPlannerPage() {
         () => filterTransactionsByPeriod(transactions, normalizedPeriod),
         [transactions, normalizedPeriod]
     );
+
+    // Available categories for filters are based on current period transactions (so multi-select stays relevant).
     const availableFilterCategories = useMemo(() => getAvailableCategoriesFromTransactions(periodTxs), [periodTxs]);
 
     const filteredTxs = useMemo(() => applyTransactionMultiFilters(periodTxs, txFilters), [periodTxs, txFilters]);
     const totals = useMemo(() => computeTotals(filteredTxs), [filteredTxs]);
+
+    // Categories for the transaction form:
+    // - fixed defaults + user-defined localStorage categories
+    // - plus any category already used by transactions (prevents orphaned categories from blocking validation)
+    const observedCategoriesAllTime = useMemo(() => getAvailableCategoriesFromTransactions(transactions), [transactions]);
+    const [categoryRefreshTick, setCategoryRefreshTick] = useState(0);
+
+    const allCategoriesForForm = useMemo(() => {
+        // Tick forces recompute after CategoryManager saves to localStorage.
+        void categoryRefreshTick;
+        return getAllCategories(observedCategoriesAllTime);
+    }, [observedCategoriesAllTime, categoryRefreshTick]);
+
+    // Category breakdown for selected period (expenses only).
+    const expenseBreakdownRows = useMemo(() => computeCategoryBreakdown(periodTxs, { type: 'expense' }), [periodTxs]);
 
     /**
      * Open add modal.
@@ -129,6 +148,15 @@ export function BudgetPlannerPage() {
             <MonthBar period={normalizedPeriod} onPeriodChange={setPeriod} totals={totals} />
 
             <main>
+                <CategoryBreakdownChart
+                    title={`Spending by category (${selectedPeriodLabel})`}
+                    rows={expenseBreakdownRows}
+                    emptyLabel={`No expenses for ${selectedPeriodLabel}.`}
+                    currencyFormatter={(n) => `$${Number(n || 0).toFixed(2)}`}
+                />
+
+                <CategoryManager onCategoriesChanged={() => setCategoryRefreshTick((t) => t + 1)} />
+
                 <TransactionFiltersBar
                     filters={txFilters}
                     onChange={setTxFilters}
@@ -163,7 +191,7 @@ export function BudgetPlannerPage() {
                     }
                 }}
                 onSave={handleSave}
-                categories={DEFAULT_CATEGORIES}
+                categories={allCategoriesForForm}
                 initialTransaction={editingTx}
             />
         </div>
