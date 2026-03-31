@@ -4,6 +4,10 @@ import { Modal } from '../../../components/ui/Modal';
 /**
  * @file TransactionForm.js
  * Add/Edit transaction modal form with validation and accessibility.
+ *
+ * Step 07.01: Recurring transactions
+ * - User can mark a transaction as recurring with a frequency and optional end date.
+ * - The recurring "rule" is embedded in the legacy transaction shape under `tx.recurring`.
  */
 
 /**
@@ -36,6 +40,10 @@ function parseAndValidateAmount(raw) {
 }
 
 /**
+ * @typedef {'none'|'daily'|'weekly'|'biweekly'|'monthly'|'yearly'} LegacyRecurringFrequency
+ */
+
+/**
  * TransactionForm component — for adding/editing income/expense transactions.
  *
  * PUBLIC_INTERFACE
@@ -58,6 +66,13 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
     const [date, setDate] = useState('');
     const [category, setCategory] = useState('');
     const [note, setNote] = useState('');
+
+    // Recurring fields (Step 07.01)
+    const [isRecurring, setIsRecurring] = useState(false);
+    /** @type {[LegacyRecurringFrequency, any]} */
+    const [recurringFrequency, setRecurringFrequency] = useState('monthly');
+    const [recurringUntilDate, setRecurringUntilDate] = useState('');
+
     const [errors, setErrors] = useState({});
 
     const typeId = useMemo(() => `tx_type_${reactId}`, [reactId]);
@@ -65,6 +80,10 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
     const dateId = useMemo(() => `tx_date_${reactId}`, [reactId]);
     const categoryId = useMemo(() => `tx_category_${reactId}`, [reactId]);
     const noteId = useMemo(() => `tx_note_${reactId}`, [reactId]);
+
+    const recurringEnabledId = useMemo(() => `tx_recurring_enabled_${reactId}`, [reactId]);
+    const recurringFreqId = useMemo(() => `tx_recurring_freq_${reactId}`, [reactId]);
+    const recurringUntilId = useMemo(() => `tx_recurring_until_${reactId}`, [reactId]);
 
     const firstFieldRef = useRef(null);
 
@@ -82,6 +101,18 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
             setDate(initialTransaction.date || '');
             setCategory(initialTransaction.category || '');
             setNote(initialTransaction.note || '');
+
+            const recurring = initialTransaction.recurring || null;
+            const enabled = Boolean(recurring && recurring.enabled);
+            const freq = String(recurring && recurring.frequency ? recurring.frequency : 'monthly');
+            const until = String(recurring && recurring.untilDate ? recurring.untilDate : '');
+
+            setIsRecurring(enabled);
+            setRecurringFrequency(
+                ['daily', 'weekly', 'biweekly', 'monthly', 'yearly'].includes(freq) ? freq : 'monthly'
+            );
+            setRecurringUntilDate(until);
+
             setErrors({});
             return;
         }
@@ -92,6 +123,11 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
         setDate('');
         setCategory('');
         setNote('');
+
+        setIsRecurring(false);
+        setRecurringFrequency('monthly');
+        setRecurringUntilDate('');
+
         setErrors({});
     }, [open, initialTransaction]);
 
@@ -119,6 +155,21 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
 
         if (note && String(note).length > 80) nextErrors.note = 'Note must be 80 characters or fewer';
 
+        // Recurring validation (only when enabled)
+        if (isRecurring) {
+            if (!recurringFrequency || recurringFrequency === 'none') {
+                nextErrors.recurringFrequency = 'Frequency is required';
+            }
+            if (recurringUntilDate && !isValidIsoDateOnly(recurringUntilDate)) {
+                nextErrors.recurringUntilDate = 'Until date must be a valid YYYY-MM-DD value';
+            }
+            if (recurringUntilDate && date && isValidIsoDateOnly(date) && isValidIsoDateOnly(recurringUntilDate)) {
+                if (String(recurringUntilDate).localeCompare(String(date)) < 0) {
+                    nextErrors.recurringUntilDate = 'Until date must be on or after the transaction date';
+                }
+            }
+        }
+
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
     }
@@ -132,6 +183,7 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
         if (!validate()) return;
 
         const { amountNumber } = parseAndValidateAmount(amount);
+
         onSave({
             // Preserve legacy shape but include id when editing.
             ...(initialTransaction && initialTransaction.id ? { id: initialTransaction.id } : {}),
@@ -140,6 +192,11 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
             date,
             category,
             note: String(note || '').trim(),
+            recurring: {
+                enabled: Boolean(isRecurring),
+                frequency: isRecurring ? recurringFrequency : 'none',
+                untilDate: isRecurring ? String(recurringUntilDate || '').trim() : '',
+            },
         });
 
         onClose();
@@ -158,6 +215,9 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
     const dateErrorId = errors.date ? `${dateId}_err` : undefined;
     const categoryErrorId = errors.category ? `${categoryId}_err` : undefined;
     const noteErrorId = errors.note ? `${noteId}_err` : undefined;
+
+    const recurringFreqErrorId = errors.recurringFrequency ? `${recurringFreqId}_err` : undefined;
+    const recurringUntilErrorId = errors.recurringUntilDate ? `${recurringUntilId}_err` : undefined;
 
     return (
         <Modal
@@ -270,6 +330,71 @@ function TransactionForm({ open, onClose, onSave, categories, initialTransaction
                         </span>
                     ) : null}
                 </div>
+
+                {/* Step 07.01: Recurring */}
+                <fieldset className="form-row recurring-fieldset">
+                    <legend className="recurring-legend">Recurring</legend>
+
+                    <div className="recurring-row">
+                        <label htmlFor={recurringEnabledId} className="recurring-checkbox">
+                            <input
+                                id={recurringEnabledId}
+                                type="checkbox"
+                                checked={isRecurring}
+                                onChange={(e) => setIsRecurring(e.target.checked)}
+                            />
+                            Make this transaction recurring
+                        </label>
+                    </div>
+
+                    {isRecurring ? (
+                        <>
+                            <div className="form-row">
+                                <label htmlFor={recurringFreqId}>Frequency</label>
+                                <select
+                                    id={recurringFreqId}
+                                    value={recurringFrequency}
+                                    onChange={(e) => setRecurringFrequency(e.target.value)}
+                                    aria-invalid={Boolean(errors.recurringFrequency)}
+                                    aria-describedby={recurringFreqErrorId}
+                                >
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="biweekly">Every 2 weeks</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                                {errors.recurringFrequency ? (
+                                    <span id={recurringFreqErrorId} className="form-error" role="alert">
+                                        {errors.recurringFrequency}
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            <div className="form-row">
+                                <label htmlFor={recurringUntilId}>Until (optional)</label>
+                                <input
+                                    id={recurringUntilId}
+                                    type="date"
+                                    value={recurringUntilDate}
+                                    onChange={(e) => setRecurringUntilDate(e.target.value)}
+                                    aria-invalid={Boolean(errors.recurringUntilDate)}
+                                    aria-describedby={recurringUntilErrorId}
+                                />
+                                {errors.recurringUntilDate ? (
+                                    <span id={recurringUntilErrorId} className="form-error" role="alert">
+                                        {errors.recurringUntilDate}
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            <p className="recurring-hint">
+                                Recurring transactions will be <strong>previewed</strong> in the selected period and only
+                                added to your saved list if you confirm generation.
+                            </p>
+                        </>
+                    ) : null}
+                </fieldset>
 
                 <div className="form-actions">
                     <button type="submit">{isEditMode ? 'Save' : 'Add'}</button>

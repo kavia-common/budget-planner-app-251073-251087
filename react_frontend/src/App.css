@@ -408,6 +408,107 @@ main {
   color: #ffdfdf;
 }
 
+/* --- Step 07.01: Recurring flags + preview rows --- */
+.tx-flag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 900;
+  margin-right: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  white-space: nowrap;
+}
+
+.tx-flag--recurring {
+  border-color: rgba(0, 255, 225, 0.55);
+  color: #d8fffb;
+}
+
+.tx-flag--generated {
+  border-color: rgba(255, 231, 107, 0.65);
+  color: #fff3b6;
+}
+
+.tx-row-generated td {
+  background: rgba(255, 231, 107, 0.08);
+}
+
+.tx-actions__readonly {
+  opacity: 0.7;
+}
+
+/* --- Step 07.01: Recurring preview banner + form section --- */
+.recurring-banner {
+  margin: 10px 0 14px 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0, 255, 225, 0.10);
+  border: 2px solid rgba(0, 255, 225, 0.45);
+  color: #d8fffb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  text-align: left;
+}
+
+.recurring-banner__sub {
+  margin-top: 3px;
+  color: rgba(216, 255, 251, 0.9);
+  font-size: 0.9rem;
+}
+
+.recurring-banner__actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.recurring-banner__btn {
+  font-size: 0.95rem;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 2px solid #00ffe1;
+  background: rgba(0, 255, 225, 0.16);
+  color: #d8fffb;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.recurring-banner__btn:hover {
+  background: rgba(0, 255, 225, 0.22);
+}
+
+.recurring-fieldset {
+  border: 2px dashed rgba(0, 255, 225, 0.45);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 6px;
+}
+
+.recurring-legend {
+  font-weight: 900;
+  padding: 0 6px;
+}
+
+.recurring-checkbox {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.recurring-hint {
+  margin: 8px 0 0 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 /* --- Transaction filters bar --- */
 .tx-filters {
   margin: 8px 0 14px 0;
