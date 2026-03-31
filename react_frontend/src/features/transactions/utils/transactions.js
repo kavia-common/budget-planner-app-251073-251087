@@ -4,6 +4,7 @@
  */
 
 import { getMonthString } from '../../../utils/date';
+import { filterBySelectedPeriod } from '../../../utils/period';
 
 /**
  * Filter transactions for a given month string.
@@ -16,6 +17,19 @@ import { getMonthString } from '../../../utils/date';
 export function filterByMonth(txs, month) {
   /** This is a public function. */
   return (txs || []).filter((tx) => getMonthString(tx.date) === month);
+}
+
+/**
+ * Filter transactions by the unified selected period state (month or custom range).
+ *
+ * PUBLIC_INTERFACE
+ * @param {Array<{date:string}>} txs
+ * @param {import('../../../utils/period').SelectedPeriod} period
+ * @returns {Array}
+ */
+export function filterTransactionsByPeriod(txs, period) {
+  /** This is a public function. */
+  return filterBySelectedPeriod(txs, period);
 }
 
 /**
@@ -35,4 +49,3 @@ export function computeTotals(txs) {
   });
   return { income, expense, net: income - expense };
 }
-

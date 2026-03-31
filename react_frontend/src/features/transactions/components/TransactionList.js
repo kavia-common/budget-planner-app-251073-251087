@@ -13,19 +13,20 @@ import React from 'react';
  * @param {Array} props.transactions List of transaction objects to show
  * @param {(tx: any) => void=} props.onEdit Called when user chooses to edit a row
  * @param {(tx: any) => void=} props.onDelete Called when user chooses to delete a row
+ * @param {string=} props.emptyLabel Optional empty-state label
  * @returns {JSX.Element}
  */
-function TransactionList({ transactions, onEdit, onDelete }) {
+function TransactionList({ transactions, onEdit, onDelete, emptyLabel }) {
     /** This is a public function. */
     const showActions = Boolean(onEdit || onDelete);
 
     if (!transactions || transactions.length === 0) {
-        return <div className="empty-state">No transactions for this month.</div>;
+        return <div className="empty-state">{emptyLabel || 'No transactions for this period.'}</div>;
     }
 
     return (
         <table className="transactions-table">
-            <caption className="sr-only">Transactions for selected month</caption>
+            <caption className="sr-only">Transactions for selected period</caption>
             <thead>
                 <tr>
                     <th scope="col">Date</th>

@@ -11,7 +11,8 @@ import { useTheme } from '../../../hooks/useTheme';
 import { useTransactions } from '../../transactions/hooks/useTransactions';
 
 import { getMonthString } from '../../../utils/date';
-import { filterByMonth, computeTotals } from '../../transactions/utils/transactions';
+import { formatSelectedPeriodLabel, normalizeSelectedPeriod } from '../../../utils/period';
+import { computeTotals, filterTransactionsByPeriod } from '../../transactions/utils/transactions';
 
 /**
  * @file BudgetPlannerPage.js
@@ -42,10 +43,21 @@ export function BudgetPlannerPage() {
         []
     );
 
-    const [month, setMonth] = useState(getMonthString(new Date().toISOString()));
+    const [period, setPeriod] = useState(() => ({
+        mode: 'month',
+        monthKey: getMonthString(new Date().toISOString()),
+        startDate: '',
+        endDate: '',
+    }));
 
-    const monthTxs = useMemo(() => filterByMonth(transactions, month), [transactions, month]);
-    const totals = useMemo(() => computeTotals(monthTxs), [monthTxs]);
+    const normalizedPeriod = useMemo(() => normalizeSelectedPeriod(period), [period]);
+
+    // Derived views must all use the same selected period state.
+    const periodTxs = useMemo(
+        () => filterTransactionsByPeriod(transactions, normalizedPeriod),
+        [transactions, normalizedPeriod]
+    );
+    const totals = useMemo(() => computeTotals(periodTxs), [periodTxs]);
 
     /**
      * Open add modal.
@@ -87,6 +99,8 @@ export function BudgetPlannerPage() {
         }
     }
 
+    const selectedPeriodLabel = useMemo(() => formatSelectedPeriodLabel(normalizedPeriod), [normalizedPeriod]);
+
     return (
         <div className="App">
             <TopBar
@@ -102,10 +116,15 @@ export function BudgetPlannerPage() {
                 }
             />
 
-            <MonthBar month={month} onMonthChange={setMonth} totals={totals} />
+            <MonthBar period={normalizedPeriod} onPeriodChange={setPeriod} totals={totals} />
 
             <main>
-                <TransactionList transactions={monthTxs} onEdit={handleEdit} onDelete={handleDelete} />
+                <TransactionList
+                    transactions={periodTxs}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    emptyLabel={`No transactions for ${selectedPeriodLabel}.`}
+                />
             </main>
 
             <FabButton
