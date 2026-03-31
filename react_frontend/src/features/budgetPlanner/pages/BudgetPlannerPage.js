@@ -54,7 +54,10 @@ import { formatCurrencyFromCents } from '../../../utils/money';
  */
 export function BudgetPlannerPage() {
     /** This is a public function. */
-    const { theme, toggleTheme } = useTheme('light');
+    const { colorTheme, styleTheme, toggleColorTheme, toggleStyleTheme } = useTheme({
+        initialColor: 'light',
+        initialStyle: 'retro',
+    });
     const [showForm, setShowForm] = useState(false);
     const [editingTx, setEditingTx] = useState(null);
     const [txFilters, setTxFilters] = useState(() => createDefaultTransactionMultiFilters());
@@ -226,11 +229,19 @@ export function BudgetPlannerPage() {
                         </button>
                         <button
                             type="button"
-                            className="theme-toggle"
-                            onClick={toggleTheme}
-                            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+                            className="topbar-actions__btn"
+                            onClick={toggleStyleTheme}
+                            aria-label={`Switch to ${styleTheme === 'retro' ? 'modern' : 'retro'} style`}
                         >
-                            {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+                            {styleTheme === 'retro' ? 'Modern UI' : 'Retro UI'}
+                        </button>
+                        <button
+                            type="button"
+                            className="topbar-actions__btn"
+                            onClick={toggleColorTheme}
+                            aria-label={`Switch to ${colorTheme === 'light' ? 'dark' : 'light'} mode`}
+                        >
+                            {colorTheme === 'light' ? 'Dark' : 'Light'}
                         </button>
                     </div>
                 }
